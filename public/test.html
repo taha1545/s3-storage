@@ -3,12 +3,82 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Upload TXT and Count Words</title>
 </head>
 
 <body>
-    <img src="http://localhost:3000/image/1756045710056-profile.jpg">
+
+    <h2>Upload TXT File</h2>
+
+    <input type="file" id="fileInput" accept=".txt">
+    <button onclick="uploadFile()">Upload</button>
+
+    <p id="uploadResult"></p>
+
+    <hr>
+
+    <h2>Count Words From Uploaded File</h2>
+
+    <button onclick="countWords()">Count Words</button>
+
+    <p id="wordCount"></p>
+
+    <script>
+        let uploadedKey = null;
+
+        async function uploadFile() {
+            const fileInput = document.getElementById("fileInput");
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select a file");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch("http://localhost:3000/upload-text", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                // 
+                uploadedKey = data.key.replace("files/", "");
+
+                document.getElementById("uploadResult").innerText =
+                    "Uploaded successfully: " + uploadedKey;
+            } catch (err) {
+                console.error(err);
+                document.getElementById("uploadResult").innerText = "Upload failed. Check console.";
+            }
+        }
+
+        async function countWords() {
+            if (!uploadedKey) {
+                alert("Upload a file first");
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `http://localhost:3000/count-words/${uploadedKey}`
+                );
+
+                const data = await response.json();
+
+                document.getElementById("wordCount").innerText =
+                    "Total Words: " + data.wordCount;
+            } catch (err) {
+                console.error(err);
+                document.getElementById("wordCount").innerText = "Error counting words.";
+            }
+        }
+    </script>
+
 </body>
 
 </html>

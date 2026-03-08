@@ -13,11 +13,18 @@ const upload = multer({
         bucket: bucketName,
         key: (req, file, cb) => {
             const uniqueName = Date.now() + "-" + path.basename(file.originalname);
-            cb(null, `pfp/${uniqueName}`);
+
+            // DYNAMIC ROUTING: Send text files to 'files/', everything else to 'pfp/'
+            if (file.mimetype === "text/plain") {
+                cb(null, `files/${uniqueName}`);
+            } else {
+                cb(null, `pfp/${uniqueName}`);
+            }
         },
     }),
     fileFilter: (req, file, cb) => {
-        const allowedExt = /jpeg|jpg|png|gif|heic|heif/;
+        // FIXED: Added |txt to the allowed extensions
+        const allowedExt = /jpeg|jpg|png|gif|heic|heif|txt/;
         const allowedMimeTypes = [
             "image/jpeg",
             "image/jpg",
@@ -25,6 +32,7 @@ const upload = multer({
             "image/gif",
             "image/heic",
             "image/heif",
+            "text/plain"
         ];
 
         const ext = path.extname(file.originalname).toLowerCase().slice(1);
@@ -33,7 +41,7 @@ const upload = multer({
         if (allowedExt.test(ext) && allowedMimeTypes.includes(mime)) {
             cb(null, true);
         } else {
-            const err = new Error("Only image files are allowed!");
+            const err = new Error("Only images and text files are allowed!");
             err.code = "INVALID_FILE_TYPE";
             cb(err);
         }
